@@ -1,0 +1,247 @@
+// @use เหมือน import แค่เป็นตัวใหม่กว่า
+@use "sass:math";
+
+// Variable
+// สิ่งที่ควรรู้
+// 1. _, - มีความหมายเหมือนกัน
+// 2. sass variable vs css varibale ข้อแตกต่างคือ
+// 2.1 sass variable เหมือนกับตัวแปรในภาษา programing
+// 2.2 css varibale เมื่อกำหนดค่าให้กับตัวแปรที่ชื่อซ้ำกันค่าก่อนหน้าที่จะเปลี่ยนแปลงก็จะเปลี่ยนไปด้วย
+
+// font-size, font_size ถือเป็นตัวแปรเดียวกัน
+// global variable
+$font-size: 16px;
+$font_size: 20px;
+$color: red;
+
+p {
+  // local variable
+  $color: green;
+  color: $color;
+  font-size: $font-size;
+}
+
+// Nested Rules
+nav {
+  background-color: aliceblue;
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  li {
+    display: inline-block;
+  }
+  a {
+    display: block;
+    padding: 6px 12px;
+    text-decoration: none;
+    // Nested Properties
+    font: {
+      font-family: Helvetica, sans-serif;
+      size: 32px;
+      weight: bold;
+    }
+  }
+}
+
+// & เป็น special selector ที่ใช้กับ nested selector
+// ความสามารถคือเอาชื่อ selector ที่เป็น parent มาวางแทน &
+.alert {
+  &:hover {
+    font-weight: bold;
+  }
+}
+
+// Import (sass ปกติ) ก็คือเอาโค้ดจากไฟล์ reset.scss มาวางไว้ที่ไฟล์นี้
+@import "./reset";
+
+// Import (sass partials)
+// sass partial คือ ไฟล์ที่ตั้งชื่อขึ้นต้นด้วย _ และจะไม่เกิดการแปลงเป็นไฟล์ css
+@import "./colors";
+.text-blue {
+  color: $myBlue;
+}
+
+// @mixin, @include
+// @mixin คือการสร้างฟังก์ขั่นใน sass
+// @include คือการดึงฟังก์ชั่นมาใช้ใน sass
+
+// @mixin แบบไม่ส่ง parameter
+@mixin important-text {
+  color: rgb(254, 95, 95);
+  font-size: 25px;
+  font-weight: bold;
+  border: 1px solid green;
+}
+
+.danger {
+  @include important-text();
+  background-color: black;
+}
+
+// @mixin แบบส่ง parameter
+@mixin bordered($width: 1px, $color: blue) {
+  border: $width solid $color;
+}
+
+.my-article {
+  @include bordered(blue, 1px);
+}
+
+.my-notes {
+  @include bordered(red, 2px);
+}
+
+.my-tips {
+  @include bordered($color: orange);
+}
+
+// @extend เป็นคำสั่งที่จะนำ css ไปที่อีก selector นึง
+// มีประโยชน์เมื่อ css มีความคล้ายกัน
+.button-basic {
+  border: none;
+  padding: 15px 30px;
+  text-align: center;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.button-report {
+  @extend .button-basic;
+  background-color: red;
+}
+
+.button-submit {
+  @extend .button-basic;
+  background-color: green;
+  color: white;
+}
+
+// placeholder เป็น selector ชนิดพิเศษ วิธีเขียนคือต้องขึ้นต้นด้วย % ข้างหน้าชื่อ placeholder
+// ต้องใช้กับ extend
+// วิธีการทำงานคือ นำ selector ที่ extend มาแทนที่ตรง placeholder
+// เช่น จาก %toolbelt จะกลายเป็น .action-buttons, .reset-buttons
+// https://sass-lang.com/documentation/style-rules/placeholder-selectors/ ไว้ดู css
+%toolbelt {
+  box-sizing: border-box;
+  border-top: 1px rgba(#000, 0.12) solid;
+  padding: 16px 0;
+  width: 100%;
+  font-size: 16px;
+
+  &:hover {
+    border: 2px rgba(#000, 0.5) solid;
+  }
+}
+
+.action-buttons {
+  @extend %toolbelt;
+  color: #4285f4;
+}
+
+.reset-buttons {
+  @extend %toolbelt;
+  color: #dc3939;
+}
+
+// @if
+@mixin avatar($size, $circle: false) {
+  width: $size;
+  height: $size;
+
+  @if $circle {
+    // math.div คือการหาร ส่วนบวก,ลบ,คูณ เขียนเป็น +, -, *
+    border-radius: math.div($size, 2);
+  }
+}
+
+.sqaure-av {
+  @include avatar(100px, $circle: false);
+}
+
+.circle-av {
+  @include avatar(100px, $circle: true);
+}
+
+// @else
+$light-background: #f2ece4;
+$light-text: #036;
+$dark-background: #6b717f;
+$dark-text: #d2e1dd;
+
+@mixin theme-colors($light-theme: true) {
+  @if $light-theme {
+    background-color: $light-background;
+    color: $light-text;
+  } @else {
+    background-color: $dark-background;
+    color: $dark-text;
+  }
+}
+
+.banner {
+  @include theme-colors($light-theme: true);
+  body.dark & {
+    @include theme-colors($light-theme: false);
+  }
+}
+
+// @else if
+@mixin triangle($size, $color, $direction) {
+  height: 0;
+  width: 0;
+
+  border-color: transparent;
+  border-style: solid;
+  border-width: math.div($size, 2);
+
+  @if $direction == up {
+    border-bottom-color: $color;
+  } @else if $direction == right {
+    border-left-color: $color;
+  } @else if $direction == down {
+    border-top-color: $color;
+  } @else if $direction == left {
+    border-right-color: $color;
+  } @else {
+    // @error คือให้แสดง error บนหน้าจอ
+    // #{variable} คือ Interpolation
+    @error "Unkonwn direction #{$direction}";
+  }
+}
+
+.next {
+  @include triangle(40px, red, right);
+}
+
+// @each คือ loop
+$sizes: 40px, 50px, 80px;
+
+@each $size in $sizes {
+  .icon-#{$size} {
+    font-size: $size;
+    height: $size;
+    width: $size * 10;
+  }
+}
+
+// @for
+$base-color: #036;
+
+@for $i from 1 through 3 {
+  div > ul > li:nth-child(3n + #{$i}) {
+    // lighten() ไว้ปรับให้ขาวขึ้น darken() ไว้ปรับให้มืดขี้น
+    background-color: lighten($base-color, $i * 5%);
+  }
+}
+
+:root {
+  --text-root: 26px;
+  --backgroud-root: rgba(255, 255, 255, 0.57);
+}
+
+.message {
+  font-size: var(--text-root);
+  background-color: var(--backgroud-root);
+}
